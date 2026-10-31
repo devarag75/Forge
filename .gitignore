@@ -26,3 +26,5 @@ key.properties
 
 # APK files
 *.apk
+
+app/release/
