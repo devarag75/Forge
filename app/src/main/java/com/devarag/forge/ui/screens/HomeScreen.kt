@@ -26,20 +26,26 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import android.widget.ImageView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.devarag.forge.R
 import com.devarag.forge.ui.components.AddTaskDialog
 import com.devarag.forge.ui.components.TaskItem
 import com.devarag.forge.ui.design.ForgeColors
 import com.devarag.forge.ui.viewmodel.NotesViewModel
 import com.devarag.forge.ui.viewmodel.TaskViewModel
 import com.devarag.forge.ui.viewmodel.TaskViewModelFactory
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.Calendar
 
 private val PurpleLight = Color(0xFFB879FF)
 private val MutedText = Color(0xFF9695AD)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen() {
 
@@ -66,6 +72,22 @@ fun HomeScreen() {
         0f
     } else {
         completedTasks.toFloat() / tasks.size.toFloat()
+    }
+
+    val greeting = remember {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        when {
+            hour < 12 -> "Good morning!"
+            hour < 17 -> "Good afternoon!"
+            else -> "Good evening!"
+        }
+    }
+
+    val currentDate = remember {
+        SimpleDateFormat(
+            "EEEE, dd MMMM",
+            Locale.getDefault()
+        ).format(Date())
     }
 
     val importantNotes = remember(notes) {
@@ -126,7 +148,9 @@ fun HomeScreen() {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
                         Text(
                             text = "YOUR PERSONAL WORKSPACE",
                             color = PurpleLight,
@@ -135,41 +159,32 @@ fun HomeScreen() {
                             letterSpacing = 1.8.sp
                         )
 
-                        Spacer(Modifier.height(7.dp))
-
                         Text(
-                            text = "Good day!",
+                            text = greeting,
                             color = ForgeColors.TextPrimary,
                             fontSize = 27.sp,
                             fontWeight = FontWeight.Bold
                         )
 
                         Text(
-                            text = "Make today count.",
+                            text = currentDate,
                             color = MutedText,
                             fontSize = 13.sp
                         )
                     }
 
-                    Box(
+                    // FORGE APP ICON
+                    AndroidView(
+                        factory = { viewContext ->
+                            ImageView(viewContext).apply {
+                                setImageResource(R.mipmap.ic_launcher)
+                                scaleType = ImageView.ScaleType.FIT_CENTER
+                            }
+                        },
                         modifier = Modifier
-                            .size(46.dp)
-                            .clip(CircleShape)
-                            .background(ForgeColors.Surface)
-                            .border(
-                                1.dp,
-                                ForgeColors.Primary.copy(alpha = 0.5f),
-                                CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "F",
-                            color = PurpleLight,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                    )
                 }
             }
 
@@ -192,7 +207,7 @@ fun HomeScreen() {
                             .background(
                                 Brush.linearGradient(
                                     listOf(
-                                        Color(0xFF29203F),
+                                        Color(0xFF302047),
                                         ForgeColors.Surface,
                                         ForgeColors.Surface
                                     )
@@ -225,24 +240,24 @@ fun HomeScreen() {
                                 )
                             }
 
-                            Text(
-                                "TODAY",
-                                color = PurpleLight,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(
-                                        ForgeColors.Primary.copy(alpha = 0.15f)
-                                    )
-                                    .padding(
+                            Surface(
+                                shape = RoundedCornerShape(20.dp),
+                                color = ForgeColors.Primary.copy(alpha = 0.15f)
+                            ) {
+                                Text(
+                                    "TODAY",
+                                    modifier = Modifier.padding(
                                         horizontal = 12.dp,
                                         vertical = 7.dp
-                                    )
-                            )
+                                    ),
+                                    color = PurpleLight,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
 
-                        Spacer(Modifier.height(20.dp))
+                        Spacer(Modifier.height(22.dp))
 
                         Box(
                             modifier = Modifier.fillMaxWidth(),
@@ -289,7 +304,7 @@ fun HomeScreen() {
                 }
             }
 
-            // TASK HEADING
+            // TASK HEADER
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -392,7 +407,7 @@ fun HomeScreen() {
                 }
             }
 
-            // IMPORTANT NOTES
+            // IMPORTANT NOTES HEADER
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -422,6 +437,7 @@ fun HomeScreen() {
                 }
             }
 
+            // NOTES PREVIEW
             item {
                 Card(
                     modifier = Modifier
@@ -539,7 +555,7 @@ fun HomeScreen() {
         }
     }
 
-    // EXISTING FULL-SCREEN NOTES
+    // FULL-SCREEN NOTES
     if (showNotesScreen) {
         Dialog(
             onDismissRequest = {
@@ -550,7 +566,9 @@ fun HomeScreen() {
             )
         ) {
             Surface(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing),
                 color = ForgeColors.Background
             ) {
                 NotesScreen(

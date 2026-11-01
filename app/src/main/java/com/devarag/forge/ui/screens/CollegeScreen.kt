@@ -1,3 +1,4 @@
+
 package com.devarag.forge.ui.screens
 
 import android.content.ContentValues
@@ -13,22 +14,27 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.devarag.forge.ui.components.AddAbsenceDialog
-import com.devarag.forge.ui.components.AddDutyLeaveDialog
 import com.devarag.forge.data.entity.Absence
 import com.devarag.forge.data.entity.DutyLeave
+import com.devarag.forge.ui.components.AddAbsenceDialog
+import com.devarag.forge.ui.components.AddDutyLeaveDialog
+import com.devarag.forge.ui.design.ForgeColors
 import com.devarag.forge.ui.viewmodel.CollegeViewModel
 import org.json.JSONArray
 import org.json.JSONObject
@@ -108,303 +114,328 @@ fun CollegeScreen(
         }
     }
 
-    ProvideTextStyle(
-        value = MaterialTheme.typography.bodyMedium.copy(
-            color = MaterialTheme.colorScheme.onSurface
-        )
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ForgeColors.Background),
+        contentPadding = PaddingValues(
+            start = 18.dp,
+            end = 18.dp,
+            top = 20.dp,
+            bottom = 120.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Column {
-                    Text(
-                        text = "College",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.headlineMedium
-                    )
 
-                    Text(
-                        text = "Your attendance records",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+        // HEADER
+        item {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Text(
+                    text = "College",
+                    color = ForgeColors.TextPrimary,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "Manage your attendance and duty leaves",
+                    color = ForgeColors.TextSecondary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
+        }
 
-            item {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    CollegeStatCard(
-                        title = "Absences",
-                        count = absences.size,
-                        modifier = Modifier.weight(1f)
-                    )
+        // SUMMARY CARDS
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                CollegeStatCard(
+                    title = "Absences",
+                    count = absences.size,
+                    subtitle = "Recorded",
+                    accent = ForgeColors.Error,
+                    modifier = Modifier.weight(1f)
+                )
 
-                    CollegeStatCard(
-                        title = "Duty Leaves",
-                        count = dutyLeaves.size,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                CollegeStatCard(
+                    title = "Duty Leaves",
+                    count = dutyLeaves.size,
+                    subtitle = "Recorded",
+                    accent = ForgeColors.Primary,
+                    modifier = Modifier.weight(1f)
+                )
             }
+        }
 
-            item {
+        // QUICK ACTIONS
+        item {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "Quick Actions",
+                    color = ForgeColors.TextPrimary,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(
                         onClick = { showAbsenceDialog = true },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ForgeColors.Primary
+                        )
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Add absence"
+                            contentDescription = null
                         )
-                        Spacer(Modifier.width(4.dp))
+                        Spacer(Modifier.width(5.dp))
                         Text("Mark Absent")
                     }
 
                     OutlinedButton(
                         onClick = { showDutyDialog = true },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = ForgeColors.TextPrimary
+                        )
                     ) {
                         Text("Duty Leave")
                     }
                 }
             }
+        }
 
+        // ABSENCE HISTORY HEADER
+        item {
+            HistorySectionHeader(
+                title = "Absence History",
+                count = absences.size
+            )
+        }
+
+        if (absences.isEmpty()) {
             item {
-                Text(
-                    text = "Absence History",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleLarge
+                CollegeEmptyState(
+                    title = "No absences yet",
+                    description = "Your absence records will appear here."
                 )
             }
+        } else {
+            items(
+                items = absences,
+                key = { "absence_${it.id}" }
+            ) { absence ->
+                CollegeHistoryCard(
+                    title = formatDate(absence.date),
+                    subtitle = if (absence.periodNumbersCsv.isBlank()) {
+                        "Full day"
+                    } else {
+                        "Periods: ${absence.periodNumbersCsv}"
+                    },
+                    details = listOf(absence.reason, absence.notes)
+                        .filter { it.isNotBlank() },
+                    accent = ForgeColors.Error,
+                    onDelete = {
+                        absenceToDelete = absence
+                    }
+                )
+            }
+        }
 
-            if (absences.isEmpty()) {
-                item {
-                    Text(
-                        text = "No absence records yet.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+        // DUTY LEAVE HISTORY HEADER
+        item {
+            HistorySectionHeader(
+                title = "Duty Leave History",
+                count = dutyLeaves.size
+            )
+        }
+
+        if (dutyLeaves.isEmpty()) {
+            item {
+                CollegeEmptyState(
+                    title = "No duty leaves yet",
+                    description = "Your approved and pending duty leaves will appear here."
+                )
+            }
+        } else {
+            items(
+                items = dutyLeaves,
+                key = { "duty_${it.id}" }
+            ) { leave ->
+                CollegeHistoryCard(
+                    title = leave.eventName,
+                    subtitle = "${formatDate(leave.startDate)} – ${formatDate(leave.endDate)}",
+                    details = buildList {
+                        add("Status: ${leave.approvalStatus}")
+                        if (leave.hoursCoveredCsv.isNotBlank()) {
+                            add("Periods: ${leave.hoursCoveredCsv}")
+                        }
+                        if (leave.reason.isNotBlank()) {
+                            add(leave.reason)
+                        }
+                        if (leave.notes.isNotBlank()) {
+                            add(leave.notes)
+                        }
+                    },
+                    accent = ForgeColors.Primary,
+                    onDelete = {
+                        dutyLeaveToDelete = leave
+                    }
+                )
+            }
+        }
+
+        // BACKUP SECTION
+        item {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Backup & Export",
+                    color = ForgeColors.TextPrimary,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "Keep your college records safe or export them.",
+                    color = ForgeColors.TextSecondary,
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = ForgeColors.Card
                     )
-                }
-            } else {
-                items(absences, key = { it.id }) { absence ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Row(
+                        Text(
+                            text = "Export your records",
+                            color = ForgeColors.TextPrimary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        OutlinedButton(
+                            onClick = {
+                                try {
+                                    exportCollegeImage(
+                                        context,
+                                        absences,
+                                        dutyLeaves
+                                    )
+                                    Toast.makeText(
+                                        context,
+                                        "College report saved to Pictures/Forge",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                } catch (e: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        "Image export failed: ${e.message}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .height(48.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = ForgeColors.TextPrimary
+                            )
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = formatDate(absence.date),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-
-                                Text(
-                                    text = if (absence.periodNumbersCsv.isBlank()) {
-                                        "Full day"
-                                    } else {
-                                        "Periods: ${absence.periodNumbersCsv}"
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-
-                                if (absence.reason.isNotBlank()) {
-                                    Text(
-                                        text = absence.reason,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-
-                                if (absence.notes.isNotBlank()) {
-                                    Text(
-                                        text = absence.notes,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                            }
-
-                            TextButton(
-                                onClick = {
-                                    absenceToDelete = absence
-                                }
-                            ) {
-                                Text(
-                                    "Delete",
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
+                            Text("Export History as Image")
                         }
-                    }
-                }
-            }
 
-            item {
-                Text(
-                    text = "Duty Leave History",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
+                        Divider(color = ForgeColors.TextSecondary.copy(alpha = 0.15f))
 
-            if (dutyLeaves.isEmpty()) {
-                item {
-                    Text(
-                        text = "No duty leave records yet.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                items(dutyLeaves, key = { it.id }) { leave ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
+                        Text(
+                            text = "JSON Backup",
+                            color = ForgeColors.TextPrimary,
+                            fontWeight = FontWeight.SemiBold
                         )
-                    ) {
-                        Row(
+
+                        Button(
+                            onClick = {
+                                backupLauncher.launch("Forge_College_Backup.json")
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .height(48.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ForgeColors.Primary
+                            )
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = leave.eventName,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
+                            Text("Create JSON Backup")
+                        }
 
-                                Text(
-                                    text = "${formatDate(leave.startDate)} – " +
-                                            formatDate(leave.endDate),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-
-                                Text(
-                                    text = "Status: ${leave.approvalStatus}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-
-                                if (leave.hoursCoveredCsv.isNotBlank()) {
-                                    Text(
-                                        text = "Periods: ${leave.hoursCoveredCsv}",
-                                        style = MaterialTheme.typography.bodySmall
+                        OutlinedButton(
+                            onClick = {
+                                restoreLauncher.launch(
+                                    arrayOf(
+                                        "application/json",
+                                        "text/json",
+                                        "*/*"
                                     )
-                                }
-
-                                if (leave.reason.isNotBlank()) {
-                                    Text(
-                                        text = leave.reason,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                            }
-
-                            TextButton(
-                                onClick = {
-                                    dutyLeaveToDelete = leave
-                                }
-                            ) {
-                                Text(
-                                    "Delete",
-                                    color = MaterialTheme.colorScheme.error
                                 )
-                            }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = ForgeColors.TextPrimary
+                            )
+                        ) {
+                            Text("Restore JSON Backup")
                         }
                     }
-                }
-            }
-
-            item {
-                Text(
-                    text = "Export & Backup",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
-
-            item {
-                OutlinedButton(
-                    onClick = {
-                        try {
-                            exportCollegeImage(context, absences, dutyLeaves)
-                            Toast.makeText(
-                                context,
-                                "College report saved to Pictures/Forge",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        } catch (e: Exception) {
-                            Toast.makeText(
-                                context,
-                                "Image export failed: ${e.message}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Export History as Image")
-                }
-
-                Spacer(Modifier.height(8.dp))
-
-                Button(
-                    onClick = {
-                        backupLauncher.launch("Forge_College_Backup.json")
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Create JSON Backup")
-                }
-
-                Spacer(Modifier.height(8.dp))
-
-                OutlinedButton(
-                    onClick = {
-                        restoreLauncher.launch(
-                            arrayOf("application/json", "text/json", "*/*")
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Restore JSON Backup")
                 }
             }
         }
     }
 
-    // Confirm absence deletion
+    // ABSENCE DELETE DIALOG
     absenceToDelete?.let { absence ->
         AlertDialog(
             onDismissRequest = {
                 absenceToDelete = null
             },
+            containerColor = ForgeColors.Card,
             title = {
                 Text(
                     "Delete absence record?",
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = ForgeColors.TextPrimary
                 )
             },
             text = {
                 Text(
-                    "Are you sure you want to delete the absence record " +
-                            "for ${formatDate(absence.date)}? " +
-                            "This action cannot be undone.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    "Are you sure you want to delete the absence record for ${formatDate(absence.date)}? This action cannot be undone.",
+                    color = ForgeColors.TextSecondary
                 )
             },
             confirmButton = {
@@ -414,10 +445,7 @@ fun CollegeScreen(
                         absenceToDelete = null
                     }
                 ) {
-                    Text(
-                        "Delete",
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    Text("Delete", color = ForgeColors.Error)
                 }
             },
             dismissButton = {
@@ -426,29 +454,29 @@ fun CollegeScreen(
                         absenceToDelete = null
                     }
                 ) {
-                    Text("Cancel")
+                    Text("Cancel", color = ForgeColors.TextSecondary)
                 }
             }
         )
     }
 
-    // Confirm duty leave deletion
+    // DUTY LEAVE DELETE DIALOG
     dutyLeaveToDelete?.let { leave ->
         AlertDialog(
             onDismissRequest = {
                 dutyLeaveToDelete = null
             },
+            containerColor = ForgeColors.Card,
             title = {
                 Text(
                     "Delete duty leave?",
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = ForgeColors.TextPrimary
                 )
             },
             text = {
                 Text(
-                    "Are you sure you want to delete \"${leave.eventName}\"? " +
-                            "This action cannot be undone.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    "Are you sure you want to delete \"${leave.eventName}\"? This action cannot be undone.",
+                    color = ForgeColors.TextSecondary
                 )
             },
             confirmButton = {
@@ -458,10 +486,7 @@ fun CollegeScreen(
                         dutyLeaveToDelete = null
                     }
                 ) {
-                    Text(
-                        "Delete",
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    Text("Delete", color = ForgeColors.Error)
                 }
             },
             dismissButton = {
@@ -470,12 +495,13 @@ fun CollegeScreen(
                         dutyLeaveToDelete = null
                     }
                 ) {
-                    Text("Cancel")
+                    Text("Cancel", color = ForgeColors.TextSecondary)
                 }
             }
         )
     }
 
+    // ADD ABSENCE DIALOG
     if (showAbsenceDialog) {
         AddAbsenceDialog(
             onDismiss = { showAbsenceDialog = false },
@@ -486,6 +512,7 @@ fun CollegeScreen(
         )
     }
 
+    // ADD DUTY LEAVE DIALOG
     if (showDutyDialog) {
         AddDutyLeaveDialog(
             onDismiss = { showDutyDialog = false },
@@ -501,28 +528,190 @@ fun CollegeScreen(
 private fun CollegeStatCard(
     title: String,
     count: Int,
+    subtitle: String,
+    accent: Color,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = ForgeColors.Card
         )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = ForgeColors.TextSecondary,
+                style = MaterialTheme.typography.bodyMedium
             )
 
             Text(
                 text = count.toString(),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = accent,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = subtitle,
+                color = ForgeColors.TextSecondary,
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+    }
+}
+
+@Composable
+private fun HistorySectionHeader(
+    title: String,
+    count: Int
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            color = ForgeColors.TextPrimary,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = ForgeColors.Primary.copy(alpha = 0.16f)
+        ) {
+            Text(
+                text = count.toString(),
+                modifier = Modifier.padding(
+                    horizontal = 12.dp,
+                    vertical = 5.dp
+                ),
+                color = ForgeColors.Primary,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun CollegeHistoryCard(
+    title: String,
+    subtitle: String,
+    details: List<String>,
+    accent: Color,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(17.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = ForgeColors.Card
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(15.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(62.dp)
+                    .background(
+                        accent,
+                        RoundedCornerShape(50)
+                    )
+            )
+
+            Spacer(Modifier.width(12.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Text(
+                    text = title,
+                    color = ForgeColors.TextPrimary,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Text(
+                    text = subtitle,
+                    color = ForgeColors.TextSecondary,
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                details.forEach { detail ->
+                    Text(
+                        text = detail,
+                        color = if (detail.startsWith("Status:")) {
+                            accent
+                        } else {
+                            ForgeColors.TextSecondary
+                        },
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            TextButton(
+                onClick = onDelete,
+                contentPadding = PaddingValues(
+                    horizontal = 8.dp,
+                    vertical = 4.dp
+                )
+            ) {
+                Text(
+                    text = "Delete",
+                    color = ForgeColors.Error,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CollegeEmptyState(
+    title: String,
+    description: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(17.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = ForgeColors.Card
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            Text(
+                text = title,
+                color = ForgeColors.TextPrimary,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Text(
+                text = description,
+                color = ForgeColors.TextSecondary,
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }
